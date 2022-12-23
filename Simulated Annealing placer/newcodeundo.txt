@@ -1,0 +1,558 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <map>
+#include<vector>
+#include <sstream>
+#include <math.h>
+using namespace std;
+
+
+// function that swaps two cells on the grid
+void swap(int x1, int y1, vector<vector<int>>& sqgrid, int x2, int y2, bool& check1, bool& check2)
+{
+
+
+	int valtmp;
+
+	valtmp = sqgrid[x1][y1];
+	sqgrid[x1][y1] = sqgrid[x2][y2];
+
+	sqgrid[x2][y2] = valtmp;
+
+	if (sqgrid[x1][y1] < 0 && sqgrid[x2][y2] >= 0)
+	{
+		/*cout << "\n sqgrid: " << sqgrid[x2][y2];
+		cout << "\n sqgrid1: " << sqgrid[x1][y1];
+		cout << "\n x2: " << x2 << "  y2:  " << y2;
+		*/
+		check1 = false;
+		check2 = true;
+
+
+	}
+	else if (sqgrid[x1][y1] >= 0 && sqgrid[x2][y2] < 0) {
+		/*cout << "\n sqgrid: " << sqgrid[x2][y2];
+		cout << "\n sqgrid1: " << sqgrid[x1][y1];*/
+		check1 = true;
+		check2 = false;
+	}
+	else if (sqgrid[x1][y1] >= 0 && sqgrid[x2][y2] >= 0) {
+
+
+
+		check1 = true;
+		check2 = true;
+
+	}
+	else  if (sqgrid[x1][y1] < 0 && sqgrid[x2][y2] < 0) {
+
+
+
+		check1 = false;
+		check2 = false;
+
+	}
+
+
+
+}
+
+//function that prints the grid with the correspondinh total wire length
+void print(vector<vector<int>> sqgrid, int hpwl, int x, int y)
+{
+	cout << "Total wire length = " << hpwl << "\n";
+	for (int i = 0; i < x; i++)
+	{
+		for (int k = 0; k < y; k++)
+		{
+			if (sqgrid[i][k] == -1) cout << "-1";
+			
+			else cout << sqgrid[i][k];
+			cout << "\t";
+		}
+		cout << "\n";
+	}
+
+}
+
+// function that calculates hpwl of a single connection
+int hpwl(int xmin, int xmax, int ymin, int ymax)
+{
+	return ((xmax - xmin) + (ymax - ymin));
+}
+
+
+// function that calculates hpwl for all connections of nets
+int maxhpwl(vector<vector<int>> cellList, int nets, vector<vector<int>>  xyval,int columns, int rows)
+{
+	int maxy = 0, miny = rows, maxx = 0, minx = columns, currhpwl = 0, oldhpwl = 0, sum = 0;
+	for (int i = 0; i < nets; i++)
+	{
+		//cout << "\n \n" << i;
+		for (int k = 1; k < cellList[i][0]+1; k++)
+		{
+	
+			if (xyval[cellList[i][k]][1] > maxx) maxx = xyval[cellList[i][k]][1];
+			if (xyval[cellList[i][k]][1] < minx) minx = xyval[cellList[i][k]][1];
+			if (xyval[cellList[i][k]][2] > maxy) maxy = xyval[cellList[i][k]][2];
+			if (xyval[cellList[i][k]][2] < miny) miny = xyval[cellList[i][k]][2];
+			
+			//cout << "\n" << "current hpwl" << currhpwl;
+		}
+		currhpwl = hpwl(minx, maxx, miny, maxy);
+		if (oldhpwl < currhpwl) oldhpwl = currhpwl;
+		sum = sum + currhpwl;
+	}
+
+
+	return sum;
+}
+
+
+int updatehpwl(vector<vector<int>> sqgrid, vector<vector<int>> cellList, vector<vector<int>>  valxy, int x1, int y1, int x2, int y2, int columns, int rows, bool check1, bool check2)
+{
+	int maxy = 0, miny = rows, maxx = 0, minx = columns, currhpwl = 0, oldhpwl = 0, sum = 0;
+
+
+	//cout << "\n check1: " << check1 << "  check2: " << check2;
+	if (check1 == true && check2 == false)
+	{
+		int net = 0;
+		
+		for (int i = 3; i < valxy[sqgrid[x1][y1]].size(); i++)
+		{
+		
+			net = valxy[sqgrid[x1][y1]][i];
+			//cout << "\n net: " << net;
+			//cout << "\n size: " <<cellList.size();
+			for (int k = 1; k < cellList[net][0]  + 1; k++)
+			{
+			
+				if (valxy[cellList[net][k]][1] > maxx) maxx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][1] < minx) minx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][2] > maxy) maxy = valxy[cellList[net][k]][2];
+				if (valxy[cellList[net][k]][2] < miny) miny = valxy[cellList[net][k]][2];
+			
+				//cout << "\n" << "current hpwl" << currhpwl;
+			}
+			currhpwl = hpwl(minx, maxx, miny, maxy);
+			if (oldhpwl < currhpwl) oldhpwl = currhpwl;
+			sum = sum + currhpwl;
+		}
+
+
+	}
+
+	else  if (check2 == true && check1 == false)
+	{
+		//cout << "\n x2: " << x2 << "  y2:  " << y2;
+		//cout << "\n sqgrid size: "<<sqgrid[x2][y2];
+		//cout << "\n valxy size: " << valxy.size();
+		 //cout << " \n error heressss";
+		 //int y = valxy[sqgrid[x2][y2]].size();
+		 
+		
+		int net;
+		for (int i = 3; i < valxy[sqgrid[x2][y2]].size(); i++)
+		{
+			
+			net = valxy[sqgrid[x2][y2]][i];
+			//cout << " \n error heressss";
+			//cout << "\n net: " << net;
+			//cout << "\n size: " << cellList.size();
+			for (int k = 1; k < cellList[net][0]  + 1; k++)
+			{
+			
+				if (valxy[cellList[net][k]][1] > maxx) maxx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][1] < minx) minx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][2] > maxy) maxy = valxy[cellList[net][k]][2];
+				if (valxy[cellList[net][k]][2] < miny) miny = valxy[cellList[net][k]][2];
+			
+				//cout << "\n" << "current hpwl" << currhpwl;
+			}
+				currhpwl = hpwl(minx, maxx, miny, maxy);
+		if (oldhpwl < currhpwl) oldhpwl = currhpwl;
+		sum = sum + currhpwl;
+		}
+
+	}
+	else if (check2 == true && check1 == true)
+	{
+		
+		for (int i = 3; i < valxy[sqgrid[x1][y1]].size(); i++)
+		{
+			int net = valxy[sqgrid[x1][y1]][i];
+	
+			net = valxy[sqgrid[x1][y1]][i];
+			//cout << "\n net: " << net;
+			//cout << "\n size: " << cellList.size();
+	
+			for (int k = 1; k < cellList[net][0] + 1; k++)
+			{
+				
+				if (valxy[cellList[net][k]][1] > maxx) maxx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][1] < minx) minx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][2] > maxy) maxy = valxy[cellList[net][k]][2];
+				if (valxy[cellList[net][k]][2] < miny) miny = valxy[cellList[net][k]][2];
+				
+				//cout << "\n" << "current hpwl" << currhpwl;
+			}
+			currhpwl = hpwl(minx, maxx, miny, maxy);
+			if (oldhpwl < currhpwl) oldhpwl = currhpwl;
+			sum = sum + currhpwl;
+		}
+		for (int i = 3; i < valxy[sqgrid[x2][y2]].size(); i++)
+		{
+			
+			int net = valxy[sqgrid[x2][y2]][i];
+			//cout << "\n net: " << net;
+			//cout << "\n size: " << cellList.size();
+			for (int k = 1; k < cellList[net][0] + 1; k++)
+			{
+			
+				if (valxy[cellList[net][k]][1] > maxx) maxx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][1] < minx) minx = valxy[cellList[net][k]][1];
+				if (valxy[cellList[net][k]][2] > maxy) maxy = valxy[cellList[net][k]][2];
+				if (valxy[cellList[net][k]][2] < miny) miny = valxy[cellList[net][k]][2];
+			
+				//cout << "\n" << "current hpwl" << currhpwl;
+			}
+			currhpwl = hpwl(minx, maxx, miny, maxy);
+			if (oldhpwl < currhpwl) oldhpwl = currhpwl;
+			sum = sum + currhpwl;
+		}
+
+	}
+	else{
+		sum = 0;
+
+	}
+
+
+	return sum;
+}
+
+
+//function that updates the 2d vector that stores the value of each cell and its x and y value on the grid after swapping
+void updatexyval(vector<vector<int>> &valxy, vector<vector<int>> &sqgrid, int x1, int y1, int x2, int y2)
+{
+
+
+	if (sqgrid[x1][y1] < 0)
+	{
+		
+		if (sqgrid[x2][y2] < 0)
+		{
+			
+		}
+		else {
+			valxy[sqgrid[x2][y2]][0] = sqgrid[x2][y2];
+			valxy[sqgrid[x2][y2]][1] = x2;
+			valxy[sqgrid[x2][y2]][2] = y2;
+			
+
+		}
+	}
+	else {
+		if (sqgrid[x2][y2] < 0)
+		{
+			valxy[sqgrid[x1][y1]][0] = sqgrid[x1][y1];
+			valxy[sqgrid[x1][y1]][1] = x1;
+			valxy[sqgrid[x1][y1]][2] = y1;
+			
+
+		}
+		else {
+			valxy[sqgrid[x2][y2]][0] = sqgrid[x2][y2];
+			valxy[sqgrid[x2][y2]][1] = x2;
+			valxy[sqgrid[x2][y2]][2] = y2;
+
+			valxy[sqgrid[x1][y1]][0] = sqgrid[x1][y1];
+			valxy[sqgrid[x1][y1]][1] = x1;
+			valxy[sqgrid[x1][y1]][2] = y1;
+			
+		}
+
+
+	}
+				
+
+				
+
+
+
+}
+
+// function moved to main for debugging purposes
+ /*void anneal(){
+ 
+	int initialcost;
+	initialcost = maxhpwl(cellList, connections, valxy, columns, rows);
+	print(sqgrid, initialcost, rows, columns);
+	double cost, bestcost, oldcost, gain;
+	double initialtemp, currtemp, ftemp, moveptemp;
+
+
+
+
+	cost = maxhpwl(cellList, connections, valxy, columns, rows);
+	//Initial Placement
+	initialtemp = 500 * cost;
+	currtemp = initialtemp;
+	bestcost = cost;
+	ftemp = 0.000005 * (cost / connections);
+	while (currtemp > ftemp)
+	{
+		srand((unsigned)time(NULL));
+		for (int i = 0; i < 10*cells; i++)
+		{
+			oldcost = cost;
+			
+
+			int rn1 = (rand() % rows);
+			int rn2 = (rand() % columns);
+			int rn3 = (rand() % rows);
+			int rn4 = (rand() % columns);
+			//cout << "\n" << rn1 << "\t" << rn2 << "\t" << rn3 << "\t" << rn4 << "\n";
+			swap(rn1, rn2, sqgrid, rn3, rn4);
+		
+			updatexyval(valxy, sqgrid);
+		
+			cost = maxhpwl(cellList, connections, valxy, columns, rows);
+			//cout << "\n" << cost;
+			//cost = hpwl(xmin, xmax, ymin, ymax);
+			gain = cost - oldcost;
+			if (gain < 0)
+			{
+				srand((unsigned)time(0));
+
+				float prob = (rand() % 1);
+				if (prob >= exp(gain / currtemp)) swap(rn1, rn2, sqgrid, rn3, rn4);
+				else if (cost < bestcost) bestcost = cost;
+			}
+		}
+		currtemp = currtemp * 0.95;
+		//cout << "Currtemp " << currtemp << "    ftemp" << ftemp << "\n \n \n";
+	}
+  }
+ */
+int main()
+{
+	// parcing input file
+	ifstream netlist;
+	vector<vector<int>> cellList;
+	vector<vector<int>> sqgrid;
+
+	int cells, connections, rows, columns;
+	netlist.open("shorttest.txt");
+
+	netlist >> cells;
+	netlist >> connections;
+	netlist >> rows;
+	netlist >> columns;
+	cout << cells << "\t" << connections << "\t" << rows << "\t" << columns << "\n";
+	int numberofcon;
+	vector<vector<int>> valxy;
+	valxy.resize(cells);
+	for (int i = 0; i < cells; i++)
+	{
+		valxy[i].resize(3);
+		valxy[i][0] = i;
+		
+	}
+
+	cellList.resize(connections);
+	int singlexy;
+	for (int i = 0; i < connections; i++)
+		cellList[i].resize(cells + 1);
+
+	//cout << "\n" << cellList.size();
+	for (int i = 0; i < connections; i++)
+	{
+		
+		//getline(netList,test);
+		netlist >> numberofcon;
+
+
+		//cout << "\n" << numberofcon;
+
+
+		//cout << "\n" << cellList[i].size();
+		for (int j = 1; j < numberofcon + 1; j++)
+		{
+			cellList[i][0] = numberofcon;
+			netlist >> cellList[i][j];
+			singlexy = i;
+			valxy[cellList[i][j]].push_back(i) ;
+
+		}
+
+	}
+
+
+
+	netlist.close();
+	// parcing ends
+
+	//printing input file
+	for (int i = 0; i < connections; i++)
+	{
+		for (int j = 0; j < cells; j++)
+		{
+			if (cellList[i][j] == 0)
+			{
+			}
+			else {
+				cout << cellList[i][j] << "\t";
+			}
+
+
+		}
+		cout << "\n";
+	}
+	//cout << "\n"<<cellList[0][0] << cellList[1][0] << cellList[2][0];
+
+
+	// initial placement of cells and instantiating the 2d vector xyval the stores each cell with its corresponding x and y value on the grid
+
+	int xmin = rows, ymin = columns;
+	int xmax = 0, ymax = 0;
+	bool rejected = false;
+
+	//Declaring a 2D-vector of size: x * y
+	sqgrid.resize(rows);
+
+	for (int i = 0; i < rows; i++)
+		sqgrid[i].resize(columns);
+
+	//Filling the 2D-vector with empty cells
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < columns; j++)
+		{
+			sqgrid[i][j] = -1;
+		}
+	}
+	
+	
+	//Initial Placement
+	srand((unsigned)time(0));
+	for (int i = 0; i < cells + 1; i++)
+	{
+		if (rejected == false && i == cells) break;
+		if (rejected)
+			i--;
+
+		int rn1 = (rand() % rows);
+		int rn2 = (rand() % columns);
+
+		if (sqgrid[rn1][rn2] == -1)
+		{
+			sqgrid[rn1][rn2] = i;
+			
+			valxy[i][1] = rn1;
+			valxy[i][2] = rn2;
+
+
+			rejected = false;
+		}
+		else
+			rejected = true;
+	}
+
+	// Calculating the hpwl of all nets using simple annealing 
+
+	int initialcost;
+	initialcost = maxhpwl(cellList, connections, valxy, columns, rows);
+	print(sqgrid, initialcost, rows, columns);
+	double cost, bestcost, oldcost, gain;
+	double initialtemp, currtemp, ftemp, moveptemp;
+	
+	/*for (int i = 0; i < cells; i++)
+	{
+		for (int j = 3; j < valxy[i].size(); j++)
+		{
+			cout << valxy[i][j]<<" ";
+		}
+		cout << "\n";
+	}*/
+	
+
+	cost = initialcost;
+	//Initial Placement
+	initialtemp = 500 * cost;
+	currtemp = initialtemp;
+	bestcost = cost;
+	int costdif1, costdif2, gaindif;
+	ftemp = 0.000005 * (cost / connections);
+	while (currtemp > ftemp)
+	{
+		srand((unsigned)time(NULL));
+		for (int i = 0; i < 10 *cells; i++)
+		{
+			oldcost = cost;
+			
+			bool check1, check2;
+			int rn1 = (rand() % rows);
+			int rn2 = (rand() % columns);
+			int rn3 = (rand() % rows);
+			int rn4 = (rand() % columns);
+			//cout << "\n" << rn1 << "\t" << rn2 << "\t" << rn3 << "\t" << rn4 << "\n";
+			
+			swap(rn1, rn2, sqgrid, rn3, rn4, check1, check2);
+			//print(sqgrid, 0, columns, rows);
+			//cout << "done ";
+			if (check1 == false && check2 == false)
+			{
+
+			}
+			else {
+				costdif1 = updatehpwl(sqgrid, cellList, valxy, rn1, rn2, rn3, rn4, columns, rows, check1, check2);
+				//cout << "done2 \n";
+				updatexyval(valxy, sqgrid, rn1, rn2, rn3, rn4);
+				costdif2 = updatehpwl(sqgrid, cellList, valxy, rn3, rn4, rn1, rn2, columns, rows, check2, check1);
+
+				//cost = maxhpwl(cellList, connections, valxy, columns, rows);
+				gaindif = costdif2 - costdif1;
+				//cout << "\n gain dif: " << gaindif;
+				cout << "\n hpwl1 : " << costdif1<< "  hpwl2 : " << costdif2;
+				cost = cost + gaindif;
+
+
+				//print(sqgrid, cost, rows, columns);
+				//cout << "\n" << cost;
+				//cost = hpwl(xmin, xmax, ymin, ymax);
+				gain = oldcost - cost;
+				//cout << "\n gain: " << gain;
+				//srand((unsigned)time(0));
+				if (gain < 0)
+				{
+
+					float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+					//float prob = (rand() % 1);
+					//cout << r << "\n";
+					//cout << "prob: " << exp(gain / currtemp) << "\n";
+					if (r >= exp(gain / currtemp)) {
+						swap(rn1, rn2, sqgrid, rn3, rn4, check1, check2);
+						updatexyval(valxy, sqgrid, rn1, rn2, rn3, rn4);
+						cost = oldcost;
+						//cout << "rejected";
+					}
+					else  cost = oldcost + gaindif;
+
+				}
+				else cost = oldcost + gaindif;//updatexyval(valxy, sqgrid, rn1, rn2, rn3, rn4);
+				//cout << "\n cost: " << cost;
+			}
+		}
+		currtemp = currtemp * 0.95;
+		//cout << "Currtemp " << currtemp << "    ftemp" << ftemp << "\n \n \n";
+	}
+	
+	// printing grid after finishing the algorithm
+
+	print(sqgrid, cost, rows, columns);
+
+	return 0;
+}
