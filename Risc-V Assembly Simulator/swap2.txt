@@ -1,0 +1,8 @@
+lw x9 , 0( x4 )
+lw x7 , 0( x7 )
+SLLI x5 , x9 , 2
+add x5 , x7 , x5
+lw x6 , 4 ( x5 )
+sw x6 , 0 ( x5 )
+sw x5 , 4 ( x5 )
+FENCE

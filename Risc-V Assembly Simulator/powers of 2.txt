@@ -1,0 +1,7 @@
+ADDI x9 , x0 , 0
+lw x5 , 0 ( x5 )
+lw x6 , 0 ( x6 )
+ADDI x8 , x6 , -1
+SLL x7 , x5 , x8
+sw x7 , 0 ( x7 )
+FENCE

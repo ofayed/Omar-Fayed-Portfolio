@@ -1,0 +1,14 @@
+lw x9 , 0 ( x9 )
+lw x8 , 0 ( x8 )
+ADDI x5 , x5 , 0
+ADDI x6 , x6 , 0
+BGE x6 , x8 , 28
+SLLI x18 , x6 , 2
+add x18 , x9 , x18
+lw x10 , 0 ( x18 )
+add x5 , x5 , x18
+ADDI x6 , x6 , 1
+JAL x0 , -24
+ADDI x9 , x5 , 0
+sw x17 , 0 ( x18 )
+FENCE
