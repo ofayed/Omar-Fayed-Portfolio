@@ -1,4 +1,4 @@
-# This project was part of "Linear Algebra" course. The codes is a matrix solver using Cramer's rule using C++ and Matlab.
+# This project was part of "Linear Algebra" course. The codes are matrix solver using Cramer's rule using C++ and Matlab.
 
 # Results of C++ Code
 
